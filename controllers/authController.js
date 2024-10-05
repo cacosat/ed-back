@@ -120,12 +120,65 @@ exports.login = async (req, res) => {
 
 // handle token refresh
 exports.refreshToken = async (req, res) => {
-    // handle refresh
+    // retrieve refreshToken from cookie
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        // Unauthorized 401: invalid refresh token
+        return res.status(401).json({ message: 'Unauthorized: refresh token not found' });
+    }
+
+    try {
+        const decoded = verifyRefreshToken(refreshToken);
+
+        // check for match in db
+        const { data: user } = await supabase
+            .from('users')
+            .select('id, refresh_token')
+            .eq('id', decoded.userId)
+            .single()
+
+        if (!user || user.refresh_token !== refreshToken) {
+            // Forbidden 403: invalid refresh token
+            return res.status(403).json({ message: 'Invalid refresh token' });
+        }
+
+        // generate new tokens
+        const newAccessToken = generateAccessToken(user.id)
+        const newRefreshToken = generateRefreshToken(user.id)
+
+        // update db
+        res
+            .status(200)
+            .cookie('refreshToken', newRefreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === production,
+                maxAge: 7*24*60*60*1000,
+                sameSite: 'Strict',
+            })
+            .json({ accessToken: newAccessToken })
+
+    } catch (err) {
+        console.error('Refresh token function error: ', err)
+        res.status(403).json({ message: 'Invalid refresh token, catch triggered in refresh token function'})
+    }
 }
 
 // handle logout
 exports.logout = async (req, res) => {
-    // handle logout
+    const userId = req.user.id
+
+    // remove refresh token form db
+    await supabase
+        .from('users')
+        .update({ refresh_token: null })
+        .eq('id', userId)
+
+    // clear cookie
+    res
+        .status(200)
+        .clearCookie('refreshToken')
+        .json({ message: 'Logged out successfully' })
 }
 
 // function for password hashing

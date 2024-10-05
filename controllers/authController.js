@@ -69,7 +69,53 @@ exports.register = async (req, res) => {
 
 // handle user login
 exports.login = async (req, res) => {
-    // handle login
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        // validation error 400: server unable to process request due to client error (email and pass required)
+        return res.status(400).json({ message: 'Email and Password required '})
+    }
+
+    try {
+        // fetch user
+        const { data: user } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single()
+
+        if (!user) {
+            // unauthorized 401: invalid credentials
+            return res.status(401).json({ message: 'Unauthorized, invalid credentials'})
+        }
+
+        // compare password
+        const isMatch = await bcrypt.compare(password, user.pass_hash);
+
+        if (!isMatch) {
+            // Unauthorized 401: invalid password
+            return res.status(401).json({ message: 'Unauthorized: invalid password' })
+        }
+
+        // token generation
+        const accessToken = generateAccessToken(user.id);
+        const refreshToken = generateRefreshToken(user.id);
+
+        // store refreshToken in db
+        res
+            .status(201)
+            .cookie('refreshToken', refreshToken, {
+                httpOnly: true, // prevents js access
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 7*24*60*60*1000, // 7 days in milliseconds
+                sameSite: 'Strict', // CSRF protection
+            })
+            .json({ accessToken, user: { id: user.id, email: user.email } });
+
+    } catch (err) {
+        console.error('Login error: ', err)
+        res.status(500).json({ message: 'Internal server error: failed login, catch triggered '})
+    }
 }
 
 // handle token refresh

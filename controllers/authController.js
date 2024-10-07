@@ -3,7 +3,7 @@ const supabase = require('../config/supabase');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/tokenUtils');
 
 // handle user registration
-exports.register = async (req, res) => {
+const register = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -68,7 +68,7 @@ exports.register = async (req, res) => {
 }
 
 // handle user login
-exports.login = async (req, res) => {
+const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -119,7 +119,7 @@ exports.login = async (req, res) => {
 }
 
 // handle token refresh
-exports.refreshToken = async (req, res) => {
+const refreshToken = async (req, res) => {
     // retrieve refreshToken from cookie
     const refreshToken = req.cookies.refreshToken;
 
@@ -165,7 +165,7 @@ exports.refreshToken = async (req, res) => {
 }
 
 // handle logout
-exports.logout = async (req, res) => {
+const logout = async (req, res) => {
     const userId = req.user.id
 
     // remove refresh token form db
@@ -195,6 +195,10 @@ const comparePassword = async (password, hash) => {
 }
 
 module.exports = {
+    register,
+    login,
+    refreshToken,
+    logout,
     hashPassword,
-    comparePassword,
+    comparePassword
 }

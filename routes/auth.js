@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-console.log('imported authController functions: ', authController);
+// console.log('imported authController functions: ', authController);
 
 const { register, login, refreshToken, logout } = authController;
 

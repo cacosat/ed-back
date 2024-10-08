@@ -12,15 +12,16 @@ const register = async (req, res) => {
 
     try {
         // check if user exists
-        const { data: existingUser, error } = await supabase 
+        const { data: existingUser, error: checkError } = await supabase 
             .from('users')        // Selects the 'users' table
             .select('id')         // Only retrieves the 'id' column
             .eq('email', email)   // Filters where 'email' equals the provided email
             .single();            // Expects a single result
         
-        if (error) {
-            console.error('Error checking for existing user: ', error)
-        }
+        // if (checkError) {
+        //     console.error('Error checking for existing user: ', checkError)
+        //     return res.status(500).json({ message: 'Error checking for existing user' });
+        // }
 
         if (existingUser) {
             // conflict error (409), existing resource
@@ -28,27 +29,39 @@ const register = async (req, res) => {
         }
 
         // hash password
-        const pass_hash = await bcrypt.hash(password, 10);
+        const password_hash = await bcrypt.hash(password, 10);
 
         // insert new user in db
         const { data: newUser, error: insertError } = await supabase
             .from('users')
-            .insert([{ email, pass_hash }])
+            .insert([{ email, password_hash }])
             .single()
 
         if (insertError) {
-            throw insertError
+            console.error('Error inserting new user:', insertError);
+            return res.status(500).json({ message: 'Failed to create new user' });
+        }
+
+        if (!newUser) {
+            console.error('New user data is null after insertion');
+            return res.status(500).json({ message: 'Failed to retrieve new user data' });
         }
 
         // generate token
         const accessToken = generateAccessToken(newUser.id);
         const refreshToken = generateRefreshToken(newUser.id);
 
+        console.log('tokens', accessToken, refreshToken);
+
         // store refreshToken in db
-        await supabase
+        const { error: updateError } = await supabase
             .from('users')
-            .update({ refreshToken: refreshToken })
+            .update({ refresh_token: refreshToken })
             .eq('id', newUser.id)
+
+        if (updateError) {
+            console.error('Error updating refresh token:', updateError);
+        }
 
         // send token
         res

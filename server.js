@@ -28,5 +28,5 @@ app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
 
 app.listen(PORT, () => {
-    console.log(`app listening on ${HOST}:${PORT} or (||) 3000`)
+    console.log(`app listening on ${HOST}:${PORT}`)
 })

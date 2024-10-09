@@ -44,7 +44,21 @@ const register = async (req, res) => {
 
         if (!newUser) {
             console.error('New user data is null after insertion');
-            return res.status(500).json({ message: 'Failed to retrieve new user data' });
+
+            // fetch user data separately
+
+            const { data: fetchedUser, error: fetchError } = await supabase
+                .from('users')
+                .select('id, email')
+                .eq('email', email)
+                .single()
+
+            if (fetchError || !fetchedUser) {
+                console.error('Error fetching new user data separately: ', fetchError);
+                return res.status(500).json({ message: 'Failed to retrieve new user data separately'})
+            }
+
+            newUser = fetchedUser;
         }
 
         // generate token

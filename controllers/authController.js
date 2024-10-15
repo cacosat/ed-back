@@ -1,3 +1,4 @@
+require('dotenv').config();
 const bcrypt = require('bcrypt');
 const supabase = require('../config/supabase');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/tokenUtils');
@@ -167,19 +168,30 @@ const refreshToken = async (req, res) => {
 
         if (!user || user.refresh_token !== refreshToken) {
             // Forbidden 403: invalid refresh token
-            return res.status(403).json({ message: 'Invalid refresh token' });
+            return res.status(403).json({ message: 'Invalid refresh token, doesnt match DB' });
         }
 
         // generate new tokens
         const newAccessToken = generateAccessToken(user.id)
         const newRefreshToken = generateRefreshToken(user.id)
 
-        // update db
+        // update db with refresh token
+
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ refresh_token: newRefreshToken })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error('Error updating refresh token:', updateError);
+            return res.status(500).json({ message: 'Error updating refresh token' });
+        }
+        
         res
             .status(200)
             .cookie('refreshToken', newRefreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === production,
+                secure: process.env.NODE_ENV === 'production',
                 maxAge: 7*24*60*60*1000,
                 sameSite: 'Strict',
             })

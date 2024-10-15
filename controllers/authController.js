@@ -32,9 +32,10 @@ const register = async (req, res) => {
         const password_hash = await bcrypt.hash(password, 10);
 
         // insert new user in db
-        const { data: newUser, error: insertError } = await supabase
+        let { data: newUser, error: insertError } = await supabase
             .from('users')
             .insert([{ email, password_hash }])
+            .select()
             .single()
 
         if (insertError) {
@@ -43,6 +44,7 @@ const register = async (req, res) => {
         }
 
         if (!newUser) {
+            console.log(newUser)
             console.error('New user data is null after insertion');
 
             // fetch user data separately
@@ -64,8 +66,6 @@ const register = async (req, res) => {
         // generate token
         const accessToken = generateAccessToken(newUser.id);
         const refreshToken = generateRefreshToken(newUser.id);
-
-        console.log('tokens', accessToken, refreshToken);
 
         // store refreshToken in db
         const { error: updateError } = await supabase

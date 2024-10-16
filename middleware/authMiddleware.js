@@ -9,6 +9,7 @@ exports.authenticateToken = (req, res, next) => {
 
     if (!accessToken) {
         // if no token return unauthorized 401
+        console.error(`error: no token recognized. Headers:`, req.headers)
         return res.sendStatus(401);
     }
 

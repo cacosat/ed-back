@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 // console.log('imported authController functions: ', authController);
 
@@ -16,6 +17,6 @@ router.post('/login', login);
 router.post('/refresh-token', refreshToken);
 
 // logout route
-router.post('/logout', logout);
+router.post('/logout', authenticateToken, logout);
 
 module.exports = router;

@@ -118,7 +118,7 @@ const login = async (req, res) => {
         }
 
         // compare password
-        const isMatch = await bcrypt.compare(password, user.pass_hash);
+        const isMatch = await bcrypt.compare(password, user.password_hash);
 
         if (!isMatch) {
             // Unauthorized 401: invalid password
@@ -130,6 +130,16 @@ const login = async (req, res) => {
         const refreshToken = generateRefreshToken(user.id);
 
         // store refreshToken in db
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ refresh_token: refreshToken })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error('Error updating the refresh token in login: ', updateError);
+            return res.send(500).json({ error: 'error updating the refresh token in login'})
+        }
+
         res
             .status(201)
             .cookie('refreshToken', refreshToken, {
@@ -186,7 +196,7 @@ const refreshToken = async (req, res) => {
             console.error('Error updating refresh token:', updateError);
             return res.status(500).json({ message: 'Error updating refresh token' });
         }
-        
+
         res
             .status(200)
             .cookie('refreshToken', newRefreshToken, {

@@ -1,17 +1,17 @@
 const supabase = require('../config/supabase');
 const { validationResult } = require('express-validator');
-const aiServices = require('../services/aiServices') // Pending to be made
+const aiServices = require('../services/aiServices');
 
 const createDeck = async (req, res) => {
     // handle validation
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
         console.error('Validation for creating deck failed')
-        res.status(400).json({ errors: validationErrors.array() })
+        return res.status(400).json({ errors: validationErrors.array() })
     }
 
     // extract creation data from req
-    const data = req.body.data; // title, keywords, description, difficulty, questionCount
+    const data = req.body.data; // keywords, description, difficulty, questionCount
     const userId = req.user.id; // from auth middleware in the routes file
 
     try {
@@ -20,7 +20,6 @@ const createDeck = async (req, res) => {
             .from('decks')
             .insert({
                 user_id: userId, 
-                title: data.title, 
                 creation_data: data,
                 status: 'creating'
             })
@@ -37,7 +36,18 @@ const createDeck = async (req, res) => {
         console.log('Sending preview request to OAI...');
         console.log('');
 
-        const preview = await aiServices.generateDeckPreview(data)
+        let preview;
+        try {
+            preview = await aiServices.generateDeckPreview(data);
+        } catch (aiError) {
+            console.error('Error generating deck preview with AI: ', aiError);
+            return res.status(500).json({ message: 'Failed to generate deck preview with AI.' });
+        }
+
+        if (!preview || !preview.content || !preview.explanation) {
+            console.error('Invalid preview data received from OAI within deckController');
+            return res.status(500).json({ message: 'Invalid preview data received from OAI within deckController.' });
+        }          
 
         console.log(`Preview generated: `, preview);
         console.log('---');
@@ -46,8 +56,11 @@ const createDeck = async (req, res) => {
         const { data: deckPreview, error: previewInsertionError } = await supabase
             .from('decks')
             .update({
+                title: preview.content.title,
+                description: preview.content.description,
                 preview_content: preview.content,
-                preview_explanation: preview.explanation
+                preview_explanation: preview.explanation,
+                status: 'preview'
             })
             .eq('id', newDeck.id)
             .select()
@@ -58,11 +71,11 @@ const createDeck = async (req, res) => {
             return res.status(500).json({ message: 'Failed insertion of deck preview into db'})
         }
 
-        return res.staus(201).json({
+        return res.status(201).json({
             deckId: newDeck.id,
             preview: {
-                content: deckPreview.content,
-                explanation: deckPreview.explanation
+                content: deckPreview.preview_content,
+                explanation: deckPreview.preview_explanation
             },
             status: 'preview'
         })

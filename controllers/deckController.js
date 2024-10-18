@@ -44,7 +44,7 @@ const createDeck = async (req, res) => {
             return res.status(500).json({ message: 'Failed to generate deck preview with AI.' });
         }
 
-        if (!preview || !preview.content || !preview.explanation) {
+        if (!preview || !preview.objectives || !preview.content) {
             console.error('Invalid preview data received from OAI within deckController');
             return res.status(500).json({ message: 'Invalid preview data received from OAI within deckController.' });
         }          
@@ -56,9 +56,8 @@ const createDeck = async (req, res) => {
         const { data: deckPreview, error: previewInsertionError } = await supabase
             .from('decks')
             .update({
-                title: preview.content.title,
-                description: preview.content.description,
-                preview_content: preview.content,
+                title: preview.title,
+                preview_content: preview,
                 preview_explanation: preview.explanation,
                 status: 'preview'
             })

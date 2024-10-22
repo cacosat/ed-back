@@ -1,4 +1,6 @@
 const OpenAI = require('openai');
+const fs = require('fs').promises;
+const path = require('path');
 require('dotenv').config();
 
 const openai = new OpenAI({
@@ -6,15 +8,87 @@ const openai = new OpenAI({
 });
 
 const generateDeckPreview = async (deckData) => {
-    // code
     try {
-        const assistantId = process.env.OPENAI_ASSISTANT_ID;
+        const syllabusAssistant = process.env.SYLLABUS_ASSISTANT_ID;
 
-        // Step 1: retrieve thread from database, if no thread create new one
+        // prompt construction
+        const syllabusTemplate = await fs.readFile(path.join(__dirname, '../prompts/syllabus_template.md'), 'utf-8');
+        const prompt = syllabusTemplate
+            .replace('{{description}}', deckData.description)
+            .replace('{{key_words}}', deckData.keyWords);
+
+        // create new thread
+        const thread = await openai.beta.threads.create();
+
+        // add message to thread
+        const message = await openai.beta.threads.messages.create(
+            thread.id,
+            {
+                role: 'user',
+                content: prompt,
+            }
+        )
+
+        // run assistant on thread w/out streaming and with polling (to monitor `status`)
+        const run = await openai.beta.threads.runs.createAndPoll(
+            thread.id, 
+            {
+                assistant_id: syllabusAssistant
+            }
+        )
+
+        // get assistant response (last msg in thread)
+        let preview;
+        if (run.status === 'completed') {
+            const messages = await openai.beta.threads.messages.list(
+                run.thread_id
+            )
+            
+            // Find the assistant's message
+            const assistantMessages = messages.data.filter((msg) => msg.role === 'assistant');
+            if (assistantMessages.length === 0) {
+                throw new Error('Assistant did not generate a response.');
+            }
+
+            const assistantMessage = assistantMessages[assistantMessages.length - 1];
+            const previewJson = assistantMessage.content[0].text.value;
+            console.log('Assistant response: ', previewJson)
+
+
+            // parse content and json
+            try {
+                preview = JSON.parse(previewJson);
+
+                return {
+                    preview, 
+                    threadId: thread.id,
+                }
+
+            } catch (error) {
+                // return preview and threadID
+                console.error('Error parsing assistant response: ', error);
+                console.error('Assistant response content:', previewJson);
+                throw new Error('Assistant response couldnt be parsed to json');
+            }
+
+        } else {
+            console.log('Run still not completed');
+        }
+
     } catch (error) {
-        
+        console.error('Error creating Deck Preview with OAI: ', error);
+        throw new Error('Failed in generating Deck with OAI')
     }
 }
+
+// const data = {
+//     description: "Id like to learn about the finalist theory on criminal law, it's impact and importance in the criminal type, and the role of free will and accountability",
+//     keyWords: 'Welzel; Criminal law;  German; Finalist theory vs; causalism; Volition in the commission of crimes'
+// }
+// const { preview, threadId } = generateDeckPreview(data)
+// console.log('preview: ', preview)
+// console.log('thread: ', threadId)
+
 
 module.exports = {
     generateDeckPreview

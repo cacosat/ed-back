@@ -8,6 +8,7 @@ const HOST = process.env.HOST;
 // routes
 const authRoutes = require('./routes/auth');
 const testRoutes = require('./routes/test');
+const deckRoutes = require('./routes/decks')
 
 // middleware
 app.use(express.json()); // allows parsing of incoming json from the client, converts json to js object and attaches it to req.body
@@ -26,6 +27,7 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/decks', deckRoutes);
 
 app.listen(PORT, () => {
     console.log(`app listening on ${HOST}:${PORT}`)

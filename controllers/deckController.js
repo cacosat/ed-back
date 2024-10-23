@@ -2,17 +2,22 @@ const supabase = require('../config/supabase');
 const { validationResult } = require('express-validator');
 const aiServices = require('../services/aiServices');
 
-const createDeck = async (req, res) => {
+const createSyllabus = async (req, res) => {
     // handle validation
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-        console.error('Validation for creating deck failed')
-        return res.status(400).json({ errors: validationErrors.array() })
-    }
+    // const validationErrors = validationResult(req);
+    // if (!validationErrors.isEmpty()) {
+    //     console.error('Validation for creating deck failed')
+    //     return res.status(400).json({ errors: validationErrors.array() })
+    // }
 
     // extract creation data from req
-    const data = req.body.data; // keywords, description, difficulty, questionCount
+    const data = req.body; // keywords, description, difficulty (fixed)
     const userId = req.user.id; // from auth middleware in the routes file
+
+    if (!data) { // || !data.description || !data.keywords
+        console.error('Invalid request data:', data);
+        return res.status(400).json({ message: 'Invalid request data. Missing required fields.' });
+    }
 
     try {
         // insert creation data to db
@@ -33,32 +38,34 @@ const createDeck = async (req, res) => {
 
         // generate preview with ai
         console.log('---');
-        console.log('Sending preview request to OAI...');
+        console.log('Sending preview request to OAI with: ', data);
         console.log('');
 
         let preview;
+        let threadId;
         try {
-            preview = await aiServices.generateDeckSyllabus(data);
+            ({ preview, threadId } = await aiServices.generateDeckSyllabus(data));
         } catch (aiError) {
             console.error('Error generating deck preview with AI: ', aiError);
             return res.status(500).json({ message: 'Failed to generate deck preview with AI.' });
         }
 
-        if (!preview || !preview.objectives || !preview.content) {
+        console.log(`Preview generated: `, preview);
+        console.log('---');
+        
+        if (!preview) {
             console.error('Invalid preview data received from OAI within deckController');
             return res.status(500).json({ message: 'Invalid preview data received from OAI within deckController.' });
         }          
-
-        console.log(`Preview generated: `, preview);
-        console.log('---');
 
         // update preview in db
         const { data: deckPreview, error: previewInsertionError } = await supabase
             .from('decks')
             .update({
                 title: preview.title,
+                description: preview.explanation,
                 preview_content: preview,
-                preview_explanation: preview.explanation,
+                conversation: threadId,
                 status: 'preview'
             })
             .eq('id', newDeck.id)
@@ -74,7 +81,7 @@ const createDeck = async (req, res) => {
             deckId: newDeck.id,
             preview: {
                 content: deckPreview.preview_content,
-                explanation: deckPreview.preview_explanation
+                thread: threadId
             },
             status: 'preview'
         })
@@ -86,5 +93,5 @@ const createDeck = async (req, res) => {
 }
 
 module.exports = {
-    createDeck
+    createSyllabus
 }

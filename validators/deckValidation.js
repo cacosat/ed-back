@@ -1,6 +1,6 @@
 const { body } = require('express-validator');
 
-createDeckValidation = [
+createSyllabusValidation = [
     body('title')
         .notEmpty()
         .withMessage('Title is required.')
@@ -25,5 +25,5 @@ createDeckValidation = [
 ];
 
 module.exports = {
-    createDeckValidation
+    createSyllabusValidation
 }

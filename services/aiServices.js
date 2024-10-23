@@ -9,6 +9,11 @@ const openai = new OpenAI({
 
 const generateDeckSyllabus = async (deckData) => {
     try {
+        console.log('Received deckData in generateDeckSyllabus:', deckData);
+        if (!deckData) { // || !deckData.description || !deckData.keywords
+            throw new Error('Invalid deckData. Missing required fields.');
+        }
+
         const syllabusAssistant = process.env.SYLLABUS_ASSISTANT_ID;
 
         // prompt construction
@@ -52,7 +57,6 @@ const generateDeckSyllabus = async (deckData) => {
 
             const assistantMessage = assistantMessages[assistantMessages.length - 1];
             const previewJson = assistantMessage.content[0].text.value;
-            console.log('Assistant response: ', previewJson)
 
 
             // parse content and json
@@ -86,15 +90,11 @@ const generateDeckSyllabus = async (deckData) => {
     }
 }
 
-// const data = {
-//     description: "Id like to learn about the finalist theory on criminal law, it's impact and importance in the criminal type, and the role of free will and accountability",
-//     keyWords: 'Welzel; Criminal law;  German; Finalist theory vs; causalism; Volition in the commission of crimes'
-// }
-// const { preview, threadId } = generateDeckSyllabus(data)
-// console.log('preview: ', preview)
-// console.log('thread: ', threadId)
-
+const generateDeckModuleContent = (module, thread) => {
+    // generate deck content per module
+}
 
 module.exports = {
-    generateDeckSyllabus
+    generateDeckSyllabus,
+    generateDeckModuleContent
 }

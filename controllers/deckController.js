@@ -38,7 +38,7 @@ const createDeck = async (req, res) => {
 
         let preview;
         try {
-            preview = await aiServices.generateDeckPreview(data);
+            preview = await aiServices.generateDeckSyllabus(data);
         } catch (aiError) {
             console.error('Error generating deck preview with AI: ', aiError);
             return res.status(500).json({ message: 'Failed to generate deck preview with AI.' });

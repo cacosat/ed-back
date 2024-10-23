@@ -29,7 +29,7 @@ The description given by the user is:
 
 Keep in mind the following words as a guide for the syllabus on possible topics to cover and/or avenues the user might find interesting:
 ```
-{{key_words}}
+{{keywords}}
 ```
 
 The user has the option to chose 1 of 3 difficulties for the questions to be generated:

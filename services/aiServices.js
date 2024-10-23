@@ -7,7 +7,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-const generateDeckPreview = async (deckData) => {
+const generateDeckSyllabus = async (deckData) => {
     try {
         const syllabusAssistant = process.env.SYLLABUS_ASSISTANT_ID;
 
@@ -15,7 +15,7 @@ const generateDeckPreview = async (deckData) => {
         const syllabusTemplate = await fs.readFile(path.join(__dirname, '../prompts/syllabus_template.md'), 'utf-8');
         const prompt = syllabusTemplate
             .replace('{{description}}', deckData.description)
-            .replace('{{key_words}}', deckData.keyWords);
+            .replace('{{keywords}}', deckData.keywords.join(', ')); // keywords joined into a str form an array
 
         // create new thread
         const thread = await openai.beta.threads.create();
@@ -59,6 +59,10 @@ const generateDeckPreview = async (deckData) => {
             try {
                 preview = JSON.parse(previewJson);
 
+                if (!preview.content) {
+                    throw new Error('Preview data is missing required content field.');
+                  }
+
                 return {
                     preview, 
                     threadId: thread.id,
@@ -73,11 +77,12 @@ const generateDeckPreview = async (deckData) => {
 
         } else {
             console.log('Run still not completed');
+            throw new Error('Assistant run did not complete.');
         }
 
     } catch (error) {
         console.error('Error creating Deck Preview with OAI: ', error);
-        throw new Error('Failed in generating Deck with OAI')
+        throw new Error('Failed in generating Deck Syllabus/Preview with OAI')
     }
 }
 
@@ -85,11 +90,11 @@ const generateDeckPreview = async (deckData) => {
 //     description: "Id like to learn about the finalist theory on criminal law, it's impact and importance in the criminal type, and the role of free will and accountability",
 //     keyWords: 'Welzel; Criminal law;  German; Finalist theory vs; causalism; Volition in the commission of crimes'
 // }
-// const { preview, threadId } = generateDeckPreview(data)
+// const { preview, threadId } = generateDeckSyllabus(data)
 // console.log('preview: ', preview)
 // console.log('thread: ', threadId)
 
 
 module.exports = {
-    generateDeckPreview
+    generateDeckSyllabus
 }

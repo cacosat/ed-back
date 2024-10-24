@@ -100,6 +100,22 @@ const createDeck = async (req, res) => {
     
     try {
         // Retrieve conversation (threadId) and preview_content (syllabus) from db for the user's specific deck
+        const { data: deck, error: deckRetrievalError } = await supabase
+            .from('decks')
+            .select('*')
+            .eq('id', deckId)
+            .eq('user_id', userId)
+            .single()
+
+        if (deckRetrievalError || !deck) {
+            console.error('Error retrieving deck from db: ', deckRetrievalError);
+            return res.status(404).json({ message: "Deck not found" });
+        }
+
+        if (deck.status !== 'preview') {
+            console.error("Deck isn't in preview state, can't generate without syllabus")
+            return res.status(400).json({ message: "Deck isn't in preview status, it's needed for deck creation"})
+        }
 
         // update specific deck (:deckId) status to 'generating'
 
@@ -119,7 +135,8 @@ const createDeck = async (req, res) => {
         // respond to client with id of deck, and full_content
         
     } catch (error) {
-        
+        console.error('Error in generating the full deck content at controller: ', error);
+        res.status(500).json({ message: "Internal server error during generation of full content" })
     }
 
 }

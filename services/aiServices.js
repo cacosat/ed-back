@@ -90,7 +90,7 @@ const generateDeckSyllabus = async (deckData) => {
     }
 }
 
-const generateDeckModuleContent = (module, thread) => {
+const generateDeckModuleContent = async (module, thread) => {
     // generate deck content per module
 }
 

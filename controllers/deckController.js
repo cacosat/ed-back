@@ -97,6 +97,7 @@ const createDeck = async (req, res) => {
 
     const deckId = req.params.deckId; // param from dynamic route '/decks/:deckId'
     const userId = req.user.id; // from auth middleware
+    let threadId;
     
     try {
         // Retrieve conversation (threadId) and preview_content (syllabus) from db for the user's specific deck
@@ -117,16 +118,63 @@ const createDeck = async (req, res) => {
             return res.status(400).json({ message: "Deck isn't in preview status, it's needed for deck creation"})
         }
 
-        // update specific deck (:deckId) status to 'generating'
+        const threadId = deck.conversation;
+        const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
+
+        // update specific deck (:deckId) status to 'generating' 
+
+        await supabase
+            .from('decks')
+            .update({
+                status: 'generating'
+            })
+            .eq('id', userId);
 
         // make modules variables for progress tracking and storing results of generated content
 
-        // loop through modules: 
-            // generate content
-            // add to full_content variable (to be used to store og version in decks table)
-            // store module in db, at specific modules table
-            // update progress var and use it to update progress in db
-            // send update to frontend (or use frontend polling)
+        const totalModules = syllabusModules.length;
+        let completedModules = 0;
+        let finalContent = {
+            title: deck.title,
+            description: deck.desecription,
+            content: {
+                modules: []
+            }
+        }
+
+        for (const module of syllabusModules) {
+            // loop through modules: 
+                // generate content
+                // add to full_content variable (to be used to store og version in decks table)
+                // store module in db, at specific modules table
+                // update progress var and use it to update progress in db
+                // send update to frontend (or use frontend polling)
+
+            let moduleContent;
+            try {
+                moduleContent = await aiServices.generateDeckModuleContent(module, threadId);
+            } catch (error) {
+                console.error(`Error generating module (${module.title}): `, error)
+                return res.status(500).json({ message: 'Error generating module content' })
+            }
+            
+            if (!moduleContent) {
+                console.error('Error loading generated information into moduleContent: ', moduleContent);
+                return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
+            }
+
+            finalContent.content.modules.push(moduleContent);
+            completedModules += 1;
+            // send update to frontend
+
+            const { data: moduleInserted, error: moduleInsertionError } = await supabase
+                .from('modules')
+                .insert({
+                    title: module.title,
+                    description: module.description,
+                    content: module.content
+                })
+        }
 
         // after all modules are generated, update full_content in db
 

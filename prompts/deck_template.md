@@ -77,96 +77,90 @@ Some additional guidelines for you to consider are:
 
 ```json 
 {
-  "title": "Deck Title",
-  "description": "Brief overview of the deck's content and purpose.",
-  "content": [
-    {
-      "module": {
-        "title": "Module Title",
-        "description": "Detailed description of Module."
-      },
-      "subtopics": [
-        {
-          "title": "Subtopic 1 Title",
-          "description": "Detailed description of Subtopic 1.",
-          "questions": {
-            "mcq": [
-              {
-                "id": "Question id",
-                "questionType": "mcq",
-                "questionText": "[Example: What is the primary function of ...?]",
-                "options": [
-                  {
-                    "option": "Option A",
-                    "isCorrect": false,
-                    "explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
-                  },
-                  {
-                    "option": "Option B",
-                    "isCorrect": true,
-                    "explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
-                  },
-                  {
-                    "option": "Option C",
-                    "isCorrect": false,
-                    "explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
-                  },
-                  {
-                    "option": "Option D",
-                    "isCorrect": false,
-                    "explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
-                  }
-                ]
-              },
-              {
-                "id": "Question id",
-                "questionType": "mcq",
-                "questionText": "What is the primary function of ...?",
-                "options": "[...]"
-              },
-              { ... }, // Add as many questions as necessary, with a minimum of 5
-            ],
-            "true/false": [
-              {
-                "questionType": "true/false",
-                "questionText": "[Example: The following statement ... reflects accurately the historical facts.]",
-                "options": [
-                  {
-                    "option": "True",
-                    "isCorrect": false,
-                    "explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
-                  },
-                  {
-                    "option": "False",
-                    "isCorrect": true,
-                    "explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
-                  }
-                ]
-              },
-              { ... } // Add as many questions as necessary, with a minimum of 3
-            ],
-            "text": [
-              {
-                "questionType": "text",
-                "questionText": "[Example: Explain the concept of ... in your own words.]",
-                "sampleAnswers": [
-                  "Sample Answer 1",
-                  "Sample Answer 2"
-                ],
-                "explanation": "Detailed explanation on what would be considered a correct answer, and how you got there, explaining the reasoning, steps, and/or anything else that might bring value to the user in understanding the topics discussed."
-              },
-              { ... }, // Add as many questions as necessary, with a minimum of 2
-            ]
-          }
-        },
-        {
-          "title": "Subtopic 2 Title",
-          "description": "Detailed description of Subtopic 2.",
-          "questions": { ... }
-        },
-        { ... } // Add as many subtopics as necessary
-      ]
-    }
+  "module": {
+	"title": "Module Title",
+	"description": "Detailed description of Module."
+  },
+  "subtopics": [
+	{
+	  "title": "Subtopic 1 Title",
+	  "description": "Detailed description of Subtopic 1.",
+	  "questions": {
+		"mcq": [
+		  {
+			"id": "Question id",
+			"questionType": "mcq",
+			"questionText": "[Example: What is the primary function of ...?]",
+			"options": [
+			  {
+				"option": "Option A",
+				"isCorrect": false,
+				"explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
+			  },
+			  {
+				"option": "Option B",
+				"isCorrect": true,
+				"explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
+			  },
+			  {
+				"option": "Option C",
+				"isCorrect": false,
+				"explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
+			  },
+			  {
+				"option": "Option D",
+				"isCorrect": false,
+				"explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
+			  }
+			]
+		  },
+		  {
+			"id": "Question id",
+			"questionType": "mcq",
+			"questionText": "What is the primary function of ...?",
+			"options": "[...]"
+		  },
+		  { ... }, // Add as many questions as necessary, with a minimum of 5
+		],
+		"true/false": [
+		  {
+			"questionType": "true/false",
+			"questionText": "[Example: The following statement ... reflects accurately the historical facts.]",
+			"options": [
+			  {
+				"option": "True",
+				"isCorrect": false,
+				"explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
+			  },
+			  {
+				"option": "False",
+				"isCorrect": true,
+				"explanation": "Detailed explanation of why this option is correct or incorrect and how it relates to the subtopic, greater module, and overall topic. This explanation should focus on providing value in understanding the topics to the user."
+			  }
+			]
+		  },
+		  { ... } // Add as many questions as necessary, with a minimum of 3
+		],
+		"text": [
+		  {
+			"questionType": "text",
+			"questionText": "[Example: Explain the concept of ... in your own words.]",
+			"sampleAnswers": [
+			  "Sample Answer 1",
+			  "Sample Answer 2"
+			],
+			"explanation": "Detailed explanation on what would be considered a correct answer, and how you got there, explaining the reasoning, steps, and/or anything else that might bring value to the user in understanding the topics discussed."
+		  },
+		  { ... }, // Add as many questions as necessary, with a minimum of 2
+		]
+	  }
+	},
+	{
+	  "title": "Subtopic 2 Title",
+	  "description": "Detailed description of Subtopic 2.",
+	  "questions": { ... }
+	},
+	{ ... } // Add as many subtopics as necessary
   ]
 }
 ```

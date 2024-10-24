@@ -92,6 +92,39 @@ const createSyllabus = async (req, res) => {
     }
 }
 
+const createDeck = async (req, res) => {
+    // handle validation with express-validator
+
+    const deckId = req.params.deckId; // param from dynamic route '/decks/:deckId'
+    const userId = req.user.id; // from auth middleware
+    
+    try {
+        // Retrieve conversation (threadId) and preview_content (syllabus) from db for the user's specific deck
+
+        // update specific deck (:deckId) status to 'generating'
+
+        // make modules variables for progress tracking and storing results of generated content
+
+        // loop through modules: 
+            // generate content
+            // add to full_content variable (to be used to store og version in decks table)
+            // store module in db, at specific modules table
+            // update progress var and use it to update progress in db
+            // send update to frontend (or use frontend polling)
+
+        // after all modules are generated, update full_content in db
+
+        // update status to generated
+
+        // respond to client with id of deck, and full_content
+        
+    } catch (error) {
+        
+    }
+
+}
+
 module.exports = {
-    createSyllabus
+    createSyllabus,
+    createDeck
 }

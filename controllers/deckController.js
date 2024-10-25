@@ -146,10 +146,14 @@ const createDeck = async (req, res) => {
                 // add to full_content variable (to be used to store og version in decks table)
                 // update progress var and use it to update progress in db
                 // send update to frontend (or use frontend polling)
+            
+            console.log()
+            console.log('---')
+            console.log('For loop iteration. Currently at: ', module);
 
             let moduleContent;
             try {
-                moduleContent = await aiServices.generateDeckModuleContent(module, threadId);
+                moduleContent = await aiServices.generateDeckModuleContent(deck, module, threadId);
             } catch (error) {
                 console.error(`Error generating module (${module.title}): `, error)
                 return res.status(500).json({ message: 'Error generating module content' })
@@ -159,6 +163,11 @@ const createDeck = async (req, res) => {
                 console.error(`Error loading generated information for "${module.title}" into moduleContent: `, moduleContent);
                 return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
             }
+
+            console.log('module created: ', moduleContent);
+            console.log('---')
+            console.log()
+
 
             const { data: moduleInserted, error: moduleInsertionError } = await supabase
                 .from('modules')
@@ -194,7 +203,7 @@ const createDeck = async (req, res) => {
             .single()
 
         if (!fullDeck || fullDeckInsertionError) {
-            console.error('Error inserting full deck content into db');
+            console.error('Error inserting full deck content into db', fullDeckInsertionError);
             return res.status(500).json({ message: 'Error inserting full deck content into db' })
         }
 

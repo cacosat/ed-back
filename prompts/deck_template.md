@@ -16,7 +16,7 @@ The description given by the user for the desired deck is:
 
 Keep in mind the following words as a guide for the deck on possible topics to cover and/or avenues the user might find interesting:
 ```
-{{key_words}}
+{{keywords}}
 ```
 
 In addition to this, here is the syllabus approved by the user that defines a breakdown of the themes and topics to be covered by the deck you generate. This is the main guide for you to build the deck so pay close attention to it and make sure to cover all of its contents:

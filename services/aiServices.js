@@ -9,7 +9,6 @@ const openai = new OpenAI({
 
 const generateDeckSyllabus = async (deckData) => {
     try {
-        console.log('Received deckData in generateDeckSyllabus:', deckData);
         if (!deckData) { // || !deckData.description || !deckData.keywords
             throw new Error('Invalid deckData. Missing required fields.');
         }
@@ -67,13 +66,13 @@ const generateDeckSyllabus = async (deckData) => {
                     throw new Error('Preview data is missing required content field.');
                   }
 
+                // return preview and threadID
                 return {
                     preview, 
                     threadId: thread.id,
                 }
 
             } catch (error) {
-                // return preview and threadID
                 console.error('Error parsing assistant response: ', error);
                 console.error('Assistant response content:', previewJson);
                 throw new Error('Assistant response couldnt be parsed to json');
@@ -92,6 +91,30 @@ const generateDeckSyllabus = async (deckData) => {
 
 const generateDeckModuleContent = async (module, thread) => {
     // generate deck content per module
+    try {
+        if (!module || !thread) {
+            console.error(`Missing required fields, module and/or thread is missing. Thread: ${thread}; Module: ${module}`)
+            throw new Error('Missing required fields, either module and/or thread.')
+        }
+
+        const deckAssistant = process.env.TEST_ASSISTANT_ID;
+
+        // prompt construction
+
+        // add message to thread
+
+        // run assistant on thread
+
+        // get assistant response if run.status==='completed', lst msg in thread
+
+        // parse resulting content and json
+
+        // return final content and thread id
+        
+    } catch (error) {
+        console.error('Error generating full deck content with OAI: ', error);
+        throw new Error("Failed generating ful deck content with OAI")
+    }
 }
 
 module.exports = {

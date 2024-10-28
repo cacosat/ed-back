@@ -122,13 +122,13 @@ const createDeck = async (req, res) => {
         const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
 
         // update specific deck (:deckId) status to 'generating' 
-        // await supabase
-        //     .from('decks')
-        //     .update({
-        //         status: 'generating'
-        //     })
-        //     .eq('id', deckId)
-        //     .eq('user_id', userId)
+        await supabase
+            .from('decks')
+            .update({
+                status: 'generating'
+            })
+            .eq('id', deckId)
+            .eq('user_id', userId)
 
         // initialize modules variables for progress tracking and storing results of generated content
         let completedModules = 0;
@@ -165,7 +165,7 @@ const createDeck = async (req, res) => {
                 return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
             }
 
-            console.log(`module created for ${module.module.title}: `, moduleContent);
+            console.log(`module created for "${module.module.title}": `, moduleContent);
             console.log('---')
             console.log()
 
@@ -195,7 +195,7 @@ const createDeck = async (req, res) => {
         // after all modules are generated, update full_content in db
         const { data: fullDeck, error: fullDeckInsertionError } = await supabase
             .from('decks')
-            .insert({
+            .update({
                 deck_content: finalContent,
             })
             .eq('user_id', userId)
@@ -217,10 +217,12 @@ const createDeck = async (req, res) => {
             .eq('id', deckId)
             .eq('user_id', userId)
 
+        console.log(`Completed generation of deck "${fullDeck.title}"`)
+
         // respond to client with id of deck, and full_content
-        res.status(200).json({
+        return res.status(200).json({
             message: 'Deck created succesfully.',
-            deck: fullDeck
+            deck: fullDeck.deck_content
         })
         
     } catch (error) {

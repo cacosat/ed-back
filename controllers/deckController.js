@@ -50,7 +50,8 @@ const createSyllabus = async (req, res) => {
             return res.status(500).json({ message: 'Failed to generate deck preview with AI.' });
         }
 
-        console.log(`Preview generated: `, preview);
+        console.log(`Preview generated: `, preview.title);
+        console.log(`Conversation thread: ${threadId}`);
         console.log('---');
         
         if (!preview) {
@@ -121,13 +122,13 @@ const createDeck = async (req, res) => {
         const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
 
         // update specific deck (:deckId) status to 'generating' 
-        await supabase
-            .from('decks')
-            .update({
-                status: 'generating'
-            })
-            .eq('id', deckId)
-            .eq('user_id', userId)
+        // await supabase
+        //     .from('decks')
+        //     .update({
+        //         status: 'generating'
+        //     })
+        //     .eq('id', deckId)
+        //     .eq('user_id', userId)
 
         // initialize modules variables for progress tracking and storing results of generated content
         let completedModules = 0;
@@ -149,22 +150,22 @@ const createDeck = async (req, res) => {
             
             console.log()
             console.log('---')
-            console.log('For loop iteration. Currently at: ', module);
+            console.log(`For loop iteration. Currently at module: `, module.module.title);
 
             let moduleContent;
             try {
                 moduleContent = await aiServices.generateDeckModuleContent(deck, module, threadId);
             } catch (error) {
-                console.error(`Error generating module (${module.title}): `, error)
+                console.error(`Error generating module (${module.module.title}): `, error)
                 return res.status(500).json({ message: 'Error generating module content' })
             }
             
             if (!moduleContent) {
-                console.error(`Error loading generated information for "${module.title}" into moduleContent: `, moduleContent);
+                console.error(`Error loading generated information for "${module.module.title}" into moduleContent: `, moduleContent);
                 return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
             }
 
-            console.log('module created: ', moduleContent);
+            console.log(`module created for ${module.module.title}: `, moduleContent);
             console.log('---')
             console.log()
 
@@ -173,8 +174,8 @@ const createDeck = async (req, res) => {
                 .from('modules')
                 .insert({
                     deck_id: deckId,
-                    title: module.title,
-                    description: module.description,
+                    title: module.module.title,
+                    description: module.module.description,
                     content: moduleContent
                 })
                 .select()

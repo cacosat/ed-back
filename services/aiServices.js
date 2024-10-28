@@ -105,8 +105,8 @@ const generateDeckModuleContent = async (deckData, module, thread) => {
         const prompt = deckPrompt
             .replace('{{description}}', deckData.creation_data.description)
             .replace('{{keywords}}', deckData.creation_data.keywords.join(', '))
-            .replace('{{syllabus}}', deckData.preview_content)
-            .replace('{{specific_module_json}}', module)
+            .replace('{{syllabus}}', JSON.stringify(deckData.preview_content))
+            .replace('{{specific_module_json}}', JSON.stringify(module))
 
         // add message to thread
         const message = await openai.beta.threads.messages.create(
@@ -116,6 +116,10 @@ const generateDeckModuleContent = async (deckData, module, thread) => {
                 content: prompt
             }
         )
+
+        console.log()
+        console.log(`Message added to thread ${thread}: `, message)
+        console.log()
 
         // run assistant on thread
         const run = await openai.beta.threads.runs.createAndPoll(
@@ -133,8 +137,21 @@ const generateDeckModuleContent = async (deckData, module, thread) => {
             if (assistantMessages.length === 0) {
                 throw new Error('Response received from the assistant without contents')
             }
+            
+            for (let i = 1; i < assistantMessages.length; i++) {
+                console.log(`Iterating assisstant message list at index ${i}/${assistantMessages.length}`)
+                console.log(`content title: `, assistantMessages[i].content[0].text.value.module)
+                console.log()
+            }
 
             const response = assistantMessages[assistantMessages.length - 1];
+            console.log()
+            console.log(`assistant msgs list of length ${assistantMessages.length}: `, assistantMessages)
+            console.log()
+            console.log(`Response retrieved as last msg of assistant messages at index ${assistantMessages.length - 1}: `, response.content[0].text.value)
+            console.log()
+            console.log(`last message from msg list: `, assistantMessages.slice(-1)[0].content[0].text.value)
+            console.log()
             const responseContent = response.content[0].text.value;
 
             try {

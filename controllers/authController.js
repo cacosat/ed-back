@@ -114,6 +114,7 @@ const login = async (req, res) => {
 
         if (!user) {
             // unauthorized 401: invalid credentials
+            console.error(`Invalid credentials, email: "${email}" and password: "${password}"; user retrieved: ${user}`)
             return res.status(401).json({ message: 'Unauthorized, invalid credentials'})
         }
 
@@ -122,6 +123,7 @@ const login = async (req, res) => {
 
         if (!isMatch) {
             // Unauthorized 401: invalid password
+            console.error(`Invalid password`)
             return res.status(401).json({ message: 'Unauthorized: invalid password' })
         }
 

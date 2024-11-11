@@ -232,6 +232,63 @@ const createDeck = async (req, res) => {
 
 }
 
+const getDecks = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const { data: decks, error: decksRetrievalError } = await supabase
+            .from('decks')
+            .select('*')
+            .eq('user_id', userId)
+
+        if (!decks || decksRetrievalError) {
+            console.error(`Error retrieving user (id: ${userId}) decks`, decksRetrievalError)
+            return res.status(404).json({ message: 'Decks not found' })
+        }
+
+        console.log(`Retrieved user decks succesfully (${userId}): `, decks);
+
+        return res.status(200).json({
+            message: 'Succesful retrieval',
+            decks: decks
+        })
+
+    } catch (error) {
+        console.error('Failed retrieval of user decks', error);
+        return res.status(500).json({
+            message: `Internal error during retrieval`,
+            user: userId,
+            error: error
+        })
+    }
+}
+
+const getDeckContent = async (req, res) => {
+    const deckId = req.params.deckId;
+    const userId = req.user.id;
+
+    try {
+        // retrieve deck info from db
+        const { data: modules, error: modulesRetrievalError } = await supabase
+            .from('modules')
+            .select('*')
+            .eq('deck_id', deckId)
+
+        if (!modules || modulesRetrievalError) {
+            console.error(`Error retrieving modules for deck ${deckId}, from db in deckController: `, modulesRetrievalError);
+            return res.status(404).json({ message: 'Deck modules not found'})
+        }
+        
+    } catch (error) {
+        console.error(`Failed retrieval of deck contents (deck id: ${deckId}): `, error);
+        return res.status(500).json({
+            message: `Internal error during retrieval of deck's content`,
+            deckId: deckId,
+            error: error
+        })
+    }
+}
+
 module.exports = {
     createSyllabus,
     createDeck

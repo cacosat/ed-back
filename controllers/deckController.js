@@ -250,6 +250,7 @@ const getDecks = async (req, res) => {
 
         return res.status(200).json({
             message: 'Succesful retrieval',
+            ok: true,
             decks: decks
         })
 

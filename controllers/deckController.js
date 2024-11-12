@@ -246,7 +246,7 @@ const getDecks = async (req, res) => {
             return res.status(404).json({ message: 'Decks not found' })
         }
 
-        console.log(`Retrieved user decks succesfully (${userId}): `, decks);
+        // console.log(`Retrieved user decks succesfully (${userId}): `, decks);
 
         return res.status(200).json({
             message: 'Succesful retrieval',
@@ -278,6 +278,12 @@ const getDeckContent = async (req, res) => {
             console.error(`Error retrieving modules for deck ${deckId}, from db in deckController: `, modulesRetrievalError);
             return res.status(404).json({ message: 'Deck modules not found'})
         }
+
+        return res.status(200).json({
+            message: 'Succesful retrieval',
+            ok: true,
+            modules: modules
+        })
         
     } catch (error) {
         console.error(`Failed retrieval of deck contents (deck id: ${deckId}): `, error);
@@ -291,5 +297,7 @@ const getDeckContent = async (req, res) => {
 
 module.exports = {
     createSyllabus,
-    createDeck
+    createDeck,
+    getDecks,
+    getDeckContent
 }

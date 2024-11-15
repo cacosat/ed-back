@@ -269,7 +269,20 @@ const getDeckContent = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // retrieve deck info from db
+        // retrieve deck data from db (title and description)
+        const { data: deckInfo, error: deckInfoRetrievalError } = await supabase
+            .from('decks')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('id', deckId)
+            .single()
+
+        if (!deckInfo || deckInfoRetrievalError) {
+            console.error(`Error retrieving deck info (deck id: ${deckId}), from db in deckController: `, deckInfoRetrievalError)
+            return res.status(404).json({ message: 'Deck info not found'})
+        }
+
+        // retrieve deck modules from db
         const { data: modules, error: modulesRetrievalError } = await supabase
             .from('modules')
             .select('*')
@@ -283,6 +296,7 @@ const getDeckContent = async (req, res) => {
         return res.status(200).json({
             message: 'Succesful retrieval',
             ok: true,
+            deckInfo: deckInfo,
             modules: modules
         })
         

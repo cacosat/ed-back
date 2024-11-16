@@ -174,7 +174,7 @@ const refreshToken = async (req, res) => {
         // check for match in db
         const { data: user } = await supabase
             .from('users')
-            .select('id, refresh_token')
+            .select('id, email, refresh_token')
             .eq('id', decoded.userId)
             .single()
 
@@ -207,7 +207,7 @@ const refreshToken = async (req, res) => {
                 maxAge: 7*24*60*60*1000,
                 sameSite: 'Strict',
             })
-            .json({ accessToken: newAccessToken })
+            .json({ accessToken: newAccessToken, user: user })
 
     } catch (err) {
         console.error('Refresh token function error: ', err)

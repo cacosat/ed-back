@@ -217,7 +217,15 @@ const refreshToken = async (req, res) => {
 
 // handle logout
 const logout = async (req, res) => {
-    const userId = req.user.id
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        return res.status(401).json({ message: 'Refresh token required for POST /logout endpoint'})
+    }
+
+    // decode jwt token to get userId
+    const decoded = verifyRefreshToken(refreshToken);
+    const userId = decoded.userId;
 
     // remove refresh token form db
     await supabase

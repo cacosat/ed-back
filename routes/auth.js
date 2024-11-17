@@ -17,6 +17,6 @@ router.post('/login', login);
 router.post('/refresh-token', refreshToken);
 
 // logout route
-router.post('/logout', authenticateToken, logout);
+router.post('/logout', logout);
 
 module.exports = router;

@@ -20,7 +20,7 @@ const generateDeckSyllabus = async (deckData) => {
         const syllabusTemplate = await fs.readFile(path.join(__dirname, '../prompts/syllabus_template.md'), 'utf-8');
         const prompt = syllabusTemplate
             .replace('{{description}}', deckData.description)
-            .replace('{{keywords}}', deckData.keywords.join(', ')); // keywords joined into a str form an array
+            .replace('{{keywords}}', deckData.keywords); 
 
         // create new thread
         const thread = await openai.beta.threads.create();

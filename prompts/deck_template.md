@@ -52,7 +52,7 @@ The content should align closely with the topics, objectives and difficulty set 
     - **Short Text Response Questions**: Write open-ended questions, like case questions, real world scenarios, or other types of questions that prompt the learner to explain, connect and describe concepts. Provide at least two **sample answers** that exemplify a correct response, along with an **explanation** that outlines key points of how a well-formed answer should be. The explanation should include a breakdown of how to approach the question and any important concepts that should be mentioned.
 2. **Content Generation**:
     - For each module and their corresponding subtopics, create a set of **trivia questions** of different types, ensuring these questions align with the subtopic's learning objectives and difficulty level.
-    - For every subtopic generate a minimum total of 10 questions. These questions should be varied, and at the very least correspond to the following distribution:
+    - For every subtopic generate a minimum of 10 questions. These questions should be varied, and at the very least correspond to the following distribution:
 	    - 5 Multiple Choice Questions (MCQ)
 	    - 3 True/False questions
 	    - 2 Short Text Response questions

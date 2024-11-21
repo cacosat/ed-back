@@ -122,13 +122,13 @@ const createDeck = async (req, res) => {
         const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
 
         // update specific deck (:deckId) status to 'generating' 
-        await supabase
-            .from('decks')
-            .update({
-                status: 'generating'
-            })
-            .eq('id', deckId)
-            .eq('user_id', userId)
+        // await supabase
+        //     .from('decks')
+        //     .update({
+        //         status: 'generating'
+        //     })
+        //     .eq('id', deckId)
+        //     .eq('user_id', userId)
 
         // initialize modules variables for progress tracking and storing results of generated content
         let completedModules = 0;

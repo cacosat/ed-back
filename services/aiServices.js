@@ -104,7 +104,7 @@ const generateDeckModuleContent = async (deckData, module, thread) => {
         const deckPrompt = await fs.readFile(path.join(__dirname, '../prompts/deck_template.md'), 'utf-8');
         const prompt = deckPrompt
             .replace('{{description}}', deckData.creation_data.description)
-            .replace('{{keywords}}', deckData.creation_data.keywords.join(', '))
+            .replace('{{keywords}}', deckData.creation_data.keywords)
             .replace('{{syllabus}}', JSON.stringify(deckData.preview_content))
             .replace('{{specific_module_json}}', JSON.stringify(module))
 

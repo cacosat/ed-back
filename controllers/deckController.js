@@ -96,13 +96,6 @@ const createSyllabus = async (req, res) => {
 const createDeck = async (req, res) => {
     // handle validation with express-validator
 
-    // Server Sent Events (SSE) headers
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-    });
-
     const deckId = req.params.deckId; // param from dynamic route '/decks/:deckId'
     const userId = req.user.id; // from auth middleware
     
@@ -197,12 +190,7 @@ const createDeck = async (req, res) => {
             completedModules += 1;
             finalContent.content.modules.push(moduleContent);
 
-            // send update to frontend via SSE
-            res.write(`data: ${JSON.stringify({
-                type: 'progress',
-                completedModules: completedModules,
-                currentModule: module.module.title
-            })}\n\n`) // 1st marks end of field (data), 2nd of message. This way the client knows when the message ends
+            // send update to frontend (could be via updates into a column of the db)
         }
 
         // after all modules are generated, update full_content in db
@@ -232,18 +220,11 @@ const createDeck = async (req, res) => {
 
         console.log(`Completed generation of deck "${fullDeck.title}"`)
 
-        // respond to client with finalization and end connection
-        res.write(`data: ${JSON.stringify({
-            type: 'complete', 
+        // respond to client with id of deck, and full_content
+        return res.status(200).json({
+            message: 'Deck created succesfully.',
             deck: fullDeck.deck_content
-        })}`)
-
-        res.end();
-
-        // return res.status(200).json({
-        //     message: 'Deck created succesfully.',
-        //     deck: fullDeck.deck_content
-        // })
+        })
         
     } catch (error) {
         console.error('Error in generating the full deck content at controller: ', error);

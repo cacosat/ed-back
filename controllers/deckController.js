@@ -93,8 +93,80 @@ const createSyllabus = async (req, res) => {
     }
 }
 
+const generateDeckContent = async (deck, userId) => {
+    const deckId = deck.id;
+    const threadId = deck.conversation;
+    const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
+    let completedModules = 0;
+
+    console.log('Starting creation of deck content')
+
+    for (const module of syllabusModules) {
+        // loop through modules: 
+            // generate content
+            // store module in db, at specific modules table
+            // add to full_content variable (to be used to store og version in decks table)
+            // update progress var and use it to update progress in db
+            // send update to frontend (or use frontend polling)
+        
+        console.log('---')
+        console.log(`For loop iteration. Currently at module: `, module.module.title);
+
+        try {
+            const moduleContent = await aiServices.generateDeckModuleContent(deck, module, threadId);
+
+            if (!moduleContent) {
+                console.error(`Error loading generated information for "${module.module.title}" into moduleContent: `, moduleContent);
+                return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
+            }
+    
+            console.log(`module created for "${module.module.title}": `, moduleContent);
+            console.log('---')
+            console.log()
+
+            const { data: moduleInserted, error: moduleInsertionError } = await supabase
+            .from('modules')
+            .insert({
+                deck_id: deckId,
+                title: module.module.title,
+                description: module.module.description,
+                content: moduleContent
+            })
+            .select()
+            .single()
+
+            if (!moduleInserted || moduleInsertionError) {
+                console.error('Failed inserting new module content into db: ', moduleInsertionError);
+                return res.status(500).json({ message: "Failed inserting new module generated into db" })
+            }
+
+            completedModules++;
+            await supabase
+                .from('decks')
+                .update({
+                    completed_modules: completedModules
+                })
+                .eq('id', deckId)
+                .eq('user_id', userId)
+
+        } catch (error) {
+            console.error(`Error generating module (${module.module.title}): `, error)
+            return res.status(500).json({ message: 'Error generating module content' })
+        }
+    }
+
+    // update status to complete
+    await supabase
+        .from('decks')
+        .update({
+            status: 'complete'
+        })
+        .eq('id', deckId)
+        .eq('user_id', userId)
+}
+
 const createDeck = async (req, res) => {
-    // handle validation with express-validator
+    // TODO: handle validation with express-validator
 
     const deckId = req.params.deckId; // param from dynamic route '/decks/:deckId'
     const userId = req.user.id; // from auth middleware
@@ -117,119 +189,34 @@ const createDeck = async (req, res) => {
             console.error("Deck isn't in preview state, can't generate without syllabus")
             return res.status(400).json({ message: "Deck isn't in preview status, it's needed for deck creation"})
         }
-
-        const threadId = deck.conversation;
-        const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
-
-        
-        // initialize modules variables for progress tracking and storing results of generated content
-        let completedModules = 0;
-        let finalContent = {
-            title: deck.title,
-            description: deck.description,
-            content: {
-                modules: []
-            }
-        }
         
         // update specific deck (:deckId) status to 'generating' 
         await supabase
             .from('decks')
             .update({
-                status: 'generating'
+                status: 'generating',
+                completed_modules: 0
             })
             .eq('id', deckId)
-            .eq('user_id', userId)
+            .eq('user_id', userId);
 
-        for (const module of syllabusModules) {
-            // loop through modules: 
-                // generate content
-                // store module in db, at specific modules table
-                // add to full_content variable (to be used to store og version in decks table)
-                // update progress var and use it to update progress in db
-                // send update to frontend (or use frontend polling)
-            
-            console.log()
-            console.log('---')
-            console.log(`For loop iteration. Currently at module: `, module.module.title);
+        // run generation in background
+        generateDeckContent(deck, userId).catch(error => {
+            console.error('Background generation failed with error: ', error)
+        })
 
-            let moduleContent;
-            try {
-                moduleContent = await aiServices.generateDeckModuleContent(deck, module, threadId);
-            } catch (error) {
-                console.error(`Error generating module (${module.module.title}): `, error)
-                return res.status(500).json({ message: 'Error generating module content' })
-            }
-            
-            if (!moduleContent) {
-                console.error(`Error loading generated information for "${module.module.title}" into moduleContent: `, moduleContent);
-                return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
-            }
-
-            console.log(`module created for "${module.module.title}": `, moduleContent);
-            console.log('---')
-            console.log()
-
-
-            const { data: moduleInserted, error: moduleInsertionError } = await supabase
-                .from('modules')
-                .insert({
-                    deck_id: deckId,
-                    title: module.module.title,
-                    description: module.module.description,
-                    content: moduleContent
-                })
-                .select()
-                .single()
-
-            if (!moduleInserted || moduleInsertionError) {
-                console.error('Failed inserting new module content into db: ', moduleInsertionError);
-                return res.status(500).json({ message: "Failed inserting new module generated into db" })
-            }
-
-            completedModules += 1;
-            finalContent.content.modules.push(moduleContent);
-
-            // send update to frontend (could be via updates into a column of the db)
-        }
-
-        // after all modules are generated, update full_content in db
-        const { data: fullDeck, error: fullDeckInsertionError } = await supabase
-            .from('decks')
-            .update({
-                deck_content: finalContent,
-            })
-            .eq('user_id', userId)
-            .eq('id', deckId)
-            .select()
-            .single()
-
-        if (!fullDeck || fullDeckInsertionError) {
-            console.error('Error inserting full deck content into db', fullDeckInsertionError);
-            return res.status(500).json({ message: 'Error inserting full deck content into db' })
-        }
-
-        // update status to complete
-        await supabase
-            .from('decks')
-            .update({
-                status: 'complete'
-            })
-            .eq('id', deckId)
-            .eq('user_id', userId)
-
-        console.log(`Completed generation of deck "${fullDeck.title}"`)
-
-        // respond to client with id of deck, and full_content
         return res.status(200).json({
-            message: 'Deck created succesfully.',
-            deck: fullDeck.deck_content
+            message: `Started deck (id: ${deckId}) creation succesfully.`,
+            deckId: deckId
         })
         
     } catch (error) {
-        console.error('Error in generating the full deck content at controller: ', error);
-        res.status(500).json({ message: "Internal server error during generation of full content" })
+        console.error('Error in starting deck creation at controller: ', error);
+        res.status(500).json({ message: "Internal server error during deck creation start" })
     }
+}
+
+const getDeckCreationProgress = async (req, res) => {
 
 }
 
@@ -314,6 +301,7 @@ const getDeckContent = async (req, res) => {
 module.exports = {
     createSyllabus,
     createDeck,
+    getDeckCreationProgress,
     getDecks,
     getDeckContent
 }

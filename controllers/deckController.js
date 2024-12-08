@@ -195,7 +195,8 @@ const createDeck = async (req, res) => {
             .from('decks')
             .update({
                 status: 'generating',
-                completed_modules: 0
+                completed_modules: 0,
+                total_modules: deck.preview_content.content.breakdown.length
             })
             .eq('id', deckId)
             .eq('user_id', userId);
@@ -217,7 +218,39 @@ const createDeck = async (req, res) => {
 }
 
 const getDeckCreationProgress = async (req, res) => {
+    // Return status and modules completed from db
+    const deckId = req.params.deckId;
+    const userId = req.user.id;
 
+    try {
+        const { data: progress, error: contentGenerationError } = await supabase
+            .from('decks')
+            .select('status, completed_modules, total')
+            .eq('user_id', userId)
+            .eq('id', deckId)
+            .single()
+
+        if(!progress || contentGenerationError) {
+            console.error(`Deck ${deckId} not found on db`)
+            return res.status(404).json({
+                message: `Deck ${deckId} not found on db`,
+                error: contentGenerationError
+            })
+        }
+
+        res.status(200).json({
+            ok: true,
+            status: progress.status,
+            completedModules: progress.completed_modules,
+            totalModules: progress.total_modules
+        })
+    } catch (error) {
+        console.error(`Failed generating deck's (id: ${deckId}), with error: `, error);
+        res.status(500).json({
+            message: 'Internal error generating decks content',
+            error: error
+        })
+    }
 }
 
 const getDecks = async (req, res) => {

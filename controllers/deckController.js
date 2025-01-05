@@ -98,6 +98,7 @@ const generateDeckContent = async (deck, userId) => {
     const threadId = deck.conversation;
     const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
     let completedModules = 0;
+    let numOfQuestions = 0;
 
     console.log('Starting creation of deck content')
 
@@ -119,8 +120,14 @@ const generateDeckContent = async (deck, userId) => {
                 console.error(`Error loading generated information for "${module.module.title}" into moduleContent: `, moduleContent);
                 return res.status(500).json({ message: 'Error loading generated info into moduleContent' })
             }
+
+            // num of questions per module  
+            // for loop over module.subtopics (array),
+            // and then take the length of 
+            // module.subtopics[index].questions.mcq.length, 
+            // ...questions.true/false.length and ...questions.text.length
     
-            console.log(`module created for "${module.module.title}": `, moduleContent);
+            console.log(`module created for "${module.module.title}" (q's = ${numOfQuestions}): `, moduleContent);
             console.log('---')
             console.log()
 
@@ -130,7 +137,8 @@ const generateDeckContent = async (deck, userId) => {
                 deck_id: deckId,
                 title: module.module.title,
                 description: module.module.description,
-                content: moduleContent
+                content: moduleContent,
+                // total_questions: int8
             })
             .select()
             .single()
@@ -154,6 +162,8 @@ const generateDeckContent = async (deck, userId) => {
             return res.status(500).json({ message: 'Error generating module content' })
         }
     }
+
+    // Count total questions
 
     // update status to complete
     await supabase

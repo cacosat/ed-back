@@ -98,18 +98,20 @@ const generateDeckContent = async (deck, userId) => {
     const threadId = deck.conversation;
     const syllabusModules = deck.preview_content.content.breakdown; // breakdown contains an array with all the modules
     let completedModules = 0;
-    let numOfQuestions = 0;
-
+    let totalQuestions = 0;
+    
     console.log('Starting creation of deck content')
-
+    
     for (const module of syllabusModules) {
         // loop through modules: 
-            // generate content
-            // store module in db, at specific modules table
-            // add to full_content variable (to be used to store og version in decks table)
-            // update progress var and use it to update progress in db
-            // send update to frontend (or use frontend polling)
+        // generate content
+        // store module in db, at specific modules table
+        // add to full_content variable (to be used to store og version in decks table)
+        // update progress var and use it to update progress in db
+        // send update to frontend (or use frontend polling)
         
+        let numOfQuestions = 0;
+
         console.log('---')
         console.log(`For loop iteration. Currently at module: `, module.module.title);
 
@@ -126,6 +128,13 @@ const generateDeckContent = async (deck, userId) => {
             // and then take the length of 
             // module.subtopics[index].questions.mcq.length, 
             // ...questions.true/false.length and ...questions.text.length
+
+            moduleContent.subtopics.forEach((subtopic) => {
+                const { mcq = [], text = [], 'true/false': trueFalse = [] } = subtopic.questions;
+                numOfQuestions += mcq.length + text.length + trueFalse.length;
+            });
+
+            totalQuestions += numOfQuestions;
     
             console.log(`module created for "${module.module.title}" (q's = ${numOfQuestions}): `, moduleContent);
             console.log('---')
@@ -138,7 +147,7 @@ const generateDeckContent = async (deck, userId) => {
                 title: module.module.title,
                 description: module.module.description,
                 content: moduleContent,
-                // total_questions: int8
+                total_questions: numOfQuestions
             })
             .select()
             .single()
@@ -169,7 +178,8 @@ const generateDeckContent = async (deck, userId) => {
     await supabase
         .from('decks')
         .update({
-            status: 'complete'
+            status: 'complete',
+            total_questions: totalQuestions
         })
         .eq('id', deckId)
         .eq('user_id', userId)
